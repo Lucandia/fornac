@@ -149,6 +149,8 @@ export function RNAUtilities() {
 
                     pt[ni] = j;
                     pt[j] = ni;
+                } else if (a == '&'){
+                    // there is a sequence break here, ignore it
                 } else {
                     throw "Unknown symbol in dotbracket string";
                 }

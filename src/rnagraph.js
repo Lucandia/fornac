@@ -85,26 +85,26 @@ export function RNAGraph(seq = '', dotbracket = '', structName = '', startNumber
     };
 
     self.removeBreaks = function(targetString) {
-        // Remove all chain breaks (denoted with a '&', which indicate
-        // that the input represents more than one strand)
+        // Collect the indexes of the chain breaks in the targetString
+        // chain breaks are indicated by '&'
         var breaks = [];
-        var breakIndex = -1;
-
-        while ((breakIndex = targetString.indexOf('&')) >= 0) {
-            breaks.push(breakIndex);
-            targetString = targetString.substring(0, breakIndex) + targetString.substring(breakIndex+1, targetString.length);
-
+        for (var i = 0; i < targetString.length; i++) {
+            if (targetString[i] === '&') {
+            breaks.push(i);
+            }
         }
 
         return {targetString: targetString,  breaks: breaks};
     };
 
     var ret = self.removeBreaks(self.dotbracket);
-    self.dotbracket = ret.targetString;
+    // commented out to avoid removing the break node, let's keep it in the dotbracket
+    // self.dotbracket = ret.targetString;
     self.dotBracketBreaks = ret.breaks;
 
     ret = self.removeBreaks(self.seq);
-    self.seq = ret.targetString;
+    // commented out to avoid removing the break node, let's keep it in the sequence
+    // self.seq = ret.targetString;
     self.seqBreaks = ret.breaks;
 
     self.rnaLength = self.dotbracket.length;
@@ -135,7 +135,8 @@ export function RNAGraph(seq = '', dotbracket = '', structName = '', startNumber
         for (let i = 0; i < labelNodes.length; i++) {
             if (self.dotBracketBreaks.indexOf(i) >= 0) {
                 labelNodes[i].nodeType = 'middle';
-                labelNodes[i+1].nodeType = 'middle';
+                // commented out to avoid removing the node after the break
+                // labelNodes[i+1].nodeType = 'middle';
             }
         }
 
@@ -444,8 +445,8 @@ export function RNAGraph(seq = '', dotbracket = '', structName = '', startNumber
         for (let i = 1; i <= pt[0]; i++) {
             var nodeName = self.seq[i-1];
 
-            if (self.dotBracketBreaks.indexOf(i-1) >= 0 ||
-                self.dotBracketBreaks.indexOf(i-2) >= 0) {
+            // remove only the breaks that are in the sequence
+            if (self.dotBracketBreaks.indexOf(i-1) >= 0) {
                 nodeName = '';
             }
 
@@ -488,9 +489,9 @@ export function RNAGraph(seq = '', dotbracket = '', structName = '', startNumber
 
             if (i > 1) {
                 // backbone links
+                // unlink only the break and the nucleotide before it
                 if (self.dotBracketBreaks.indexOf(i-1) === -1 &&
-                    self.dotBracketBreaks.indexOf(i-2) == -1 &&
-                    self.dotBracketBreaks.indexOf(i-3) == -1) {
+                    self.dotBracketBreaks.indexOf(i-2) == -1) {
                     // there is no break in the strands here
                     // we can add a backbone link
                     self.links.push({'source': self.nodes[i-2],
