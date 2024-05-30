@@ -11,7 +11,7 @@ to display.
 Below is an example of a simple web page which uses a `FornaContainer` to show
 a simple RNA molecule:
 
-![fornac example](./doc/img/forna-container-screenshot.png "An example of the FornaContainer")
+<img src="./doc/img/forna-container-screenshot.png" width="150">
 
 The code for creating this web page is rather straightforward. After importing
 some necessary javascript files, we create a container using `new
@@ -44,7 +44,7 @@ This after the RNA container.
 
 Display two cofolded sequences using the format of [RNAcofold](http://rna.tbi.univie.ac.at/cgi-bin/RNAcofold.cgi):
 
-![Cofolded sequences](./doc/img/cofold_example.png "An example of cofolded sequences displayed using the FornaContainer")
+<img src="./doc/img/cofold_example.png" width="150">
 
 ```javascript
     var container = new fornac.FornaContainer("#cofold_ss",
@@ -91,7 +91,7 @@ This only makes sense in connection with the `animation` argument. If it's
 true, the external loops will be arranged in a nice circle. If false, they will
 be allowed to flop around as the force layout dictates:
 
-![Circularized example](./doc/img/uncircularized_exterior.png "An example of circularized sequences")
+<img src="./doc/img/uncircularized_exterior.png" width="150">
 
 ### labelInterval [default=10]
 
