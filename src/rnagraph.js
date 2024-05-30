@@ -84,35 +84,35 @@ export function RNAGraph(seq = '', dotbracket = '', structName = '', startNumber
         self.pairtable = rnaUtilities.dotbracketToPairtable(self.dotbracket);
     };
 
-    self.removeBreaks = function(targetString) {
-        // Collect the indexes of the chain breaks in the targetString
-        // chain breaks are indicated by '&'
-        var breaks = [];
-        for (var i = 0; i < targetString.length; i++) {
-            if (targetString[i] === '&') {
-            breaks.push(i);
-            }
-        }
+    // self.removeBreaks = function(targetString) {
+    //     // Collect the indexes of the chain breaks in the targetString
+    //     // chain breaks are indicated by '&'
+    //     var breaks = [];
+    //     for (var i = 0; i < targetString.length; i++) {
+    //         if (targetString[i] === '&') {
+    //         breaks.push(i);
+    //         }
+    //     }
 
-        return {targetString: targetString,  breaks: breaks};
-    };
+    //     return {targetString: targetString,  breaks: breaks};
+    // };
 
-    var ret = self.removeBreaks(self.dotbracket);
+    // var ret = self.removeBreaks(self.dotbracket);
     // commented out to avoid removing the break node, let's keep it in the dotbracket
     // self.dotbracket = ret.targetString;
-    self.dotBracketBreaks = ret.breaks;
+    // self.dotBracketBreaks = ret.breaks;
 
-    ret = self.removeBreaks(self.seq);
+    // ret = self.removeBreaks(self.seq);
     // commented out to avoid removing the break node, let's keep it in the sequence
     // self.seq = ret.targetString;
-    self.seqBreaks = ret.breaks;
+    // self.seqBreaks = ret.breaks;
 
     self.rnaLength = self.dotbracket.length;
 
-    if (!arraysEqual(self.dotBracketBreaks, self.seqBreaks)) {
-        console.log('WARNING: Sequence and structure breaks not equal');
-        console.log('WARNING: Using the breaks in the structure');
-    }
+    // if (!arraysEqual(self.dotBracketBreaks, self.seqBreaks)) {
+    //     console.log('WARNING: Sequence and structure breaks not equal');
+    //     console.log('WARNING: Using the breaks in the structure');
+    // }
 
     self.computePairtable();
 
@@ -131,24 +131,24 @@ export function RNAGraph(seq = '', dotbracket = '', structName = '', startNumber
         // convert all the nodes following breaks to fake nodes
         let labelNodes = self.nodes.filter(function(d) { return d.nodeType == 'nucleotide'; });
 
-        // if a node was an artifical break node, convert it to a middle
-        for (let i = 0; i < labelNodes.length; i++) {
-            if (self.dotBracketBreaks.indexOf(i) >= 0) {
-                labelNodes[i].nodeType = 'middle';
-                // commented out to avoid removing the node after the break
-                // labelNodes[i+1].nodeType = 'middle';
-            }
-        }
+        // // if a node was an artifical break node, convert it to a middle
+        // for (let i = 0; i < labelNodes.length; i++) {
+        //     if (self.dotBracketBreaks.indexOf(i) >= 0) {
+        //         labelNodes[i].nodeType = 'middle';
+        //         // commented out to avoid removing the node after the break
+        //         // labelNodes[i+1].nodeType = 'middle';
+        //     }
+        // }
 
         for (let i = 0; i < self.elements.length; i++) {
             var broken = false;
 
-            // change the elemType of the other nodes in the element containing
-            // the break
-            for (let j = 0; j < self.elements[i][2].length; j++) {
-                if (self.dotBracketBreaks.indexOf(self.elements[i][2][j]) >= 0)
-                    broken = true;
-            }
+            // // change the elemType of the other nodes in the element containing
+            // // the break
+            // for (let j = 0; j < self.elements[i][2].length; j++) {
+            //     if (self.dotBracketBreaks.indexOf(self.elements[i][2][j]) >= 0)
+            //         broken = true;
+            // }
 
             if (broken) {
                 self.elements[i][2].map(function(x) {
@@ -445,10 +445,10 @@ export function RNAGraph(seq = '', dotbracket = '', structName = '', startNumber
         for (let i = 1; i <= pt[0]; i++) {
             var nodeName = self.seq[i-1];
 
-            // remove only the breaks that are in the sequence
-            if (self.dotBracketBreaks.indexOf(i-1) >= 0) {
-                nodeName = '';
-            }
+            // // remove only the breaks that are in the sequence
+            // if (self.dotBracketBreaks.indexOf(i-1) >= 0) {
+            //     nodeName = '';
+            // }
 
             //create a node for each nucleotide
             self.nodes.push({'name': nodeName,
@@ -490,8 +490,8 @@ export function RNAGraph(seq = '', dotbracket = '', structName = '', startNumber
             if (i > 1) {
                 // backbone links
                 // unlink only the break and the nucleotide before it
-                if (self.dotBracketBreaks.indexOf(i-1) === -1 &&
-                    self.dotBracketBreaks.indexOf(i-2) == -1) {
+                // if (self.dotBracketBreaks.indexOf(i-1) === -1 &&
+                //     self.dotBracketBreaks.indexOf(i-2) == -1) {
                     // there is no break in the strands here
                     // we can add a backbone link
                     self.links.push({'source': self.nodes[i-2],
@@ -500,7 +500,7 @@ export function RNAGraph(seq = '', dotbracket = '', structName = '', startNumber
                                     'value': 1,
                                     'uid': slugid.nice() });
                     self.nodes[i-1].linked = true;
-                }
+                // }
             }
         }
 
@@ -556,31 +556,31 @@ export function RNAGraph(seq = '', dotbracket = '', structName = '', startNumber
             if (i > j) {
                 //hairpin loop or one large unpaired molecule
                 u5.push(i);
-                if (level === 0)
+                // if (level === 0)
                     return [['e',level, u5.sort(numberSort)]];
-                else {
-                    // check to see if we have chain breaks due
-                    // to multiple strands in the input
-                    var external = false;
-                    var left = [];
-                    var right = [];
-                    for (var k = 0; k < u5.length; k++) {
-                        if (external)
-                            right.push(u5[k]);
-                        else
-                            left.push(u5[k]);
+                // else {
+                //     // check to see if we have chain breaks due
+                //     // to multiple strands in the input
+                //     var external = false;
+                //     var left = [];
+                //     var right = [];
+                //     for (var k = 0; k < u5.length; k++) {
+                //         if (external)
+                //             right.push(u5[k]);
+                //         else
+                //             left.push(u5[k]);
 
-                        if (self.dotBracketBreaks.indexOf(u5[k]) >= 0)
-                            external = true;
-                    }
+                //         if (self.dotBracketBreaks.indexOf(u5[k]) >= 0)
+                //             external = true;
+                //     }
 
-                    if (external) {
-                        return [['h',level, u5.sort(numberSort)]];
-                    }
-                    else
-                        // if not, this is a simple hairpin loop
-                        return [['h',level, u5.sort(numberSort)]];
-                }
+                //     if (external) {
+                //         return [['h',level, u5.sort(numberSort)]];
+                //     }
+                //     else
+                //         // if not, this is a simple hairpin loop
+                //         return [['h',level, u5.sort(numberSort)]];
+                // }
             }
 
             if (pt[i] != j) {
