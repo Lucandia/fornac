@@ -1490,6 +1490,107 @@ export function FornaContainer(element, passedOptions = {}) {
         // add them back to the plot
     }
 
+    let splitMultiStrand = function(rna) {
+        // split a multi strand RNA into its individual strands
+        // get the position of the '&' character in the dotbracket string
+        let breakPositions = [];
+        for (let i = 0; i < rna.dotbracket.length; i++) {
+            if (rna.dotbracket[i] == '&') {
+                breakPositions.push(i);
+            }
+        }
+
+        let toRemove = [];
+        // collect all the base pairs that are between split strands
+        for (let i = 0; i < rna.links.length; i++) {
+            let link = rna.links[i];
+
+            if (link.linkType != 'basepair')
+                continue; // only consider base pairs
+            
+            for (let j = 0; j < breakPositions.length; j++) {
+                let node = rna.nodes[breakPositions[j]]; // take the split node
+                // take the two links that connect the split node 
+                let linkSource = rna.links.filter(link => link.source === node)[0];
+                let linkTarget = rna.links.filter(link => link.target === node)[0];
+                if (link.source.num <= linkSource.source.num && link.target.num >= linkTarget.target.num) {
+                    console.log('crossing basepair', link);
+                    link.breakFrom = 0;
+                    // find the strand that the source is in
+                    for (let k = 0; k < breakPositions.length - 1; k++) {
+                        if (link.source.num > breakPositions[k] && link.source.num < breakPositions[k+1])
+                            link.breakFrom = k+1;
+                    }
+                    // find the strand that the target is in
+                    link.breakTo = j+1; 
+                    link.from = link.source.num;
+                    // find the position of the source in the strand
+                    if (link.breakFrom > 0) link.from -= breakPositions[link.breakFrom-1] + link.breakFrom;
+                    // find the position of the target in the strand
+                    link.to = link.target.num - linkTarget.target.num;
+                    toRemove.push(link);
+                }
+            }
+        }
+
+
+        // Remove all base pairs that are between these two nodes and add them as extra
+        // links
+        console.log('toRemove:', toRemove);
+        let sequences = rna.seq.split('&');
+
+        // remove the base pairs
+        for (let i = 0; i < toRemove.length; i++) {
+            rna.pairtable[toRemove[i].source.num] = 0;
+            rna.pairtable[toRemove[i].target.num] = 0;
+        }
+
+        // extract the dotbracket string of the rna
+        // cut it at the position of this backbone bond
+        console.log('sequences:', sequences);
+
+        let rnaDotBracket = rnaUtilities.pairtableToDotbracket(rna.pairtable);
+        let dotbrackets = []; // array to hold the dotbracket strings of the individual strands
+        let rnaPositions = rna.getPositions('nucleotide') // get the nucleotide positions, cut them at the positions of the backbone bond
+        let positions = [];
+        let rnaUids = rna.getUids();
+        let uids = [];
+        let lastBreak = 0; // the position of the last break
+        for (let i = 0; i <= breakPositions.length; i++) {
+            // cut the dotbracket
+            dotbrackets.push(rnaDotBracket.slice(lastBreak, breakPositions[i]));
+            // add the positions
+            positions.push(rnaPositions.slice(lastBreak, breakPositions[i]));
+            // add the uids
+            uids.push(rnaUids.slice(lastBreak, breakPositions[i]));
+            lastBreak = breakPositions[i] + 1;
+        }
+
+        console.log('positions:', positions);
+
+        delete self.rnas[rna.uid];
+        let newRnas = [];
+        for (let i = 0; i < sequences.length; i++) {
+            let newRna = self.addRNA(dotbrackets[i], { 'sequence': sequences[i],
+                                      'positions': positions[i],    
+                                        'uids': uids[i] });
+            newRnas.push(newRna);
+        }
+        // add the extra links
+        for (let i = 0; i < toRemove.length; i++) {
+            console.log('toRemove[i]', toRemove[i]);
+            self.extraLinks.push(
+                {'source': newRnas[toRemove[i].breakFrom].nodes[toRemove[i].from-1],
+                 'target': newRnas[toRemove[i].breakTo].nodes[toRemove[i].to-1],
+                 'value': 1,
+                 'uid': slugid.nice(),
+                 'linkType': 'intermolecule'});
+                recalculateGraph();
+                self.update();
+        }
+        console.log('self.extraLinks:', self.extraLinks);
+    }
+
     var removeLink = function(d) {
         // remove a link between two nodes
         let index = self.graph.links.indexOf(d);
@@ -1907,6 +2008,13 @@ export function FornaContainer(element, passedOptions = {}) {
         else
             self.addRNAJSON(rnaJson, {centerView: passedOptions.centerView});
 
+        // if the structure containes multistrands, let's split before the '&'
+        console.log('structure:', structure);
+        if (structure.indexOf('&') !== -1 && structure != '&' && structure.indexOf('&') !== 0) {
+            console.log('splitting multistrand');
+            splitMultiStrand(rnaJson);
+            return;
+        };
         return rnaJson;
     };
 
@@ -2126,7 +2234,7 @@ export function FornaContainer(element, passedOptions = {}) {
                 if (node.nodeType != 'nucleotide')
                     continue;
 
-                console.log('node:', node);
+                // console.log('node:', node);
                 nodeIdxs[node.uid] = currIdx;
                 currIdx += 1;
 
